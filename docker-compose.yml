@@ -1,6 +1,6 @@
 services:
   backend:
-    build: .
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/devops-backend:${IMAGE_TAG:-latest}
     env_file: .env
     networks:
       - devops-net
