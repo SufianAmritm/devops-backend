@@ -42,9 +42,13 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            IMAGE_OWNER="${GITHUB_REPOSITORY_OWNER,,}"
+            IMAGE_OWNER=$(printf '%s' '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')
+
             cd ~/devops-backend
+
             docker pull ghcr.io/${IMAGE_OWNER}/devops-backend:${{ github.sha }}
+
             echo "IMAGE_OWNER=${IMAGE_OWNER}" > .env.image
             echo "IMAGE_TAG=${{ github.sha }}" >> .env.image
-            docker compose up -d
+
+            docker compose --env-file .env.image up -d
