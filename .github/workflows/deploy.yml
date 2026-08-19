@@ -19,12 +19,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set image owner
+        run: echo "IMAGE_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+
       - name: Build and push image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/devops-backend:${{ github.sha }}
+          tags: ghcr.io/${{ env.IMAGE_OWNER }}/devops-backend:${{ github.sha }}
 
   deploy:
     needs: build-and-push
@@ -37,7 +40,9 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            IMAGE_OWNER="${GITHUB_REPOSITORY_OWNER,,}"
             cd ~/devops-backend
-            docker pull ghcr.io/${{ github.repository_owner }}/devops-backend:${{ github.sha }}
-            echo "IMAGE_TAG=${{ github.sha }}" > .env.image
+            docker pull ghcr.io/${IMAGE_OWNER}/devops-backend:${{ github.sha }}
+            echo "IMAGE_OWNER=${IMAGE_OWNER}" > .env.image
+            echo "IMAGE_TAG=${{ github.sha }}" >> .env.image
             docker compose up -d
